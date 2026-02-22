@@ -36,7 +36,10 @@ class ChessBoard{
      * @brief Inits pieces on the board.
      */
     void initPieces();
-
+    /**
+     * @brief Resets chessboard.
+     */
+    void reset();
     /**
      * @brief Displays codes of the squares. Does not take parameters.
      */
