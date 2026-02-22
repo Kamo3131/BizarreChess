@@ -42,13 +42,19 @@ std::optional<sf::Vector2i> RaySelection::worldToBoardSquare(const Chessboard3D 
     float tileW = chess3D.getSize().x;
     float tileH = chess3D.getSize().y;
 
-    int i = static_cast<int>(_hitpoint.x / tileW);
-    int j = static_cast<int>(_hitpoint.z / tileH);
+    int render_i = static_cast<int>(std::floor(_hitpoint.x / tileW));
+    int render_j = static_cast<int>(std::floor(_hitpoint.z / tileH));
 
-    if (i < 0 || i >= horizontal || j < 0 || j >= vertical){
+
+    if (render_i < 0 || render_i >= horizontal || render_j < 0 || render_j >= vertical){
         return std::nullopt;
     }
 
+    constexpr bool mirrorX = false; 
+    constexpr bool mirrorY = true;
+
+    const int i = mirrorX ? (horizontal - 1 - render_i) : render_i;
+    const int j = mirrorY ? (vertical - 1 - render_j) : render_j;
     return sf::Vector2i(i, j);
 }
 

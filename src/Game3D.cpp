@@ -132,43 +132,44 @@ void Game3D::gameLoop(){
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         renderShaderBackground(window, totalTime);
         setupCamera();
+        bool mirrorX = false; 
+        bool mirrorY = true;
+
+
         for(int i = horizontal - 1; i > -1; i--){
             for(int j = vertical - 1; j > -1; j--){
+                int render_i = mirrorX ? (horizontal - i - 1) : i;
+                int render_j = mirrorY ? (vertical - j - 1) : j;
+                float draw_x = render_i * chess3D.getSize().x;
+                float draw_y = render_j * chess3D.getSize().y;
+                sf::Vector2f drawPos(draw_x, draw_y);
                 if(i%2 == j%2){
-                    chess3D.drawSquareTile(Piece::Team::BLACK, sf::Vector2f(i * chess3D.getSize().x, j * chess3D.getSize().y));
+                    chess3D.drawSquareTile(Piece::Team::BLACK, drawPos);
                 } else {
-                    chess3D.drawSquareTile(Piece::Team::WHITE, sf::Vector2f(i * chess3D.getSize().x, j * chess3D.getSize().y));
+                    chess3D.drawSquareTile(Piece::Team::WHITE, drawPos);
                 }
-                if(0 == i){
-                    chess3D.drawChessboardWall(sf::Vector2f(i * chess3D.getSize().x, j * chess3D.getSize().y), Chessboard3D::Direction::WEST);
-                }
-                if((horizontal-1) == i){
-                    chess3D.drawChessboardWall(sf::Vector2f(i * chess3D.getSize().x, j * chess3D.getSize().y), Chessboard3D::Direction::EAST);
-                }
-                if(0 == j) {
-                    chess3D.drawChessboardWall(sf::Vector2f(i * chess3D.getSize().x, j * chess3D.getSize().y), Chessboard3D::Direction::NORTH);
-                }
-                if((vertical-1) == j){
-                    chess3D.drawChessboardWall(sf::Vector2f(i * chess3D.getSize().x, j * chess3D.getSize().y), Chessboard3D::Direction::SOUTH); 
-                }
+                if(0 == render_i) chess3D.drawChessboardWall(drawPos, Chessboard3D::Direction::WEST);
+                if((horizontal - 1) == render_i) chess3D.drawChessboardWall(drawPos, Chessboard3D::Direction::EAST);
+                if(0 == render_j) chess3D.drawChessboardWall(drawPos, Chessboard3D::Direction::NORTH);
+                if((vertical - 1) == render_j) chess3D.drawChessboardWall(drawPos, Chessboard3D::Direction::SOUTH);
+                
                 if(_chessBoard.getPiece(static_cast<size_t>(i), static_cast<size_t>(j))){
                     std::unique_ptr<Piece> &piece = _chessBoard.getPiece(static_cast<size_t>(i), static_cast<size_t>(j));
-                    chess3D.drawPiece(piece->getType(), piece->getTeam(), sf::Vector2i(i * static_cast<int>(chess3D.getSize().x),
-                    j * static_cast<int>(chess3D.getSize().y)));
+                    chess3D.drawPiece(piece->getType(), piece->getTeam(), sf::Vector2i(static_cast<int>(draw_x),
+                    static_cast<int>(draw_y)));
                     if(_selectedSquare && i == _selectedSquare->x && j == _selectedSquare->y){
-                        chess3D.highlightSelectedPiece(sf::Vector2f(i * chess3D.getSize().x, j * chess3D.getSize().y));
+                        chess3D.highlightSelectedPiece(drawPos);
                     }
 
-                } else {
-                    continue;
                 }
-
             }
         }
         glDisable(GL_LIGHTING);
         if(_selectedSquare){
             for(const sf::Vector2i& move : _possibleMoves){
-                chess3D.highlightPossibleSquare(sf::Vector2f(move.x * chess3D.getSize().x, move.y * chess3D.getSize().y));
+                int render_move_x = mirrorX ? (horizontal - 1 - move.x) : move.x;
+                int render_move_y = mirrorY ? (vertical - 1 - move.y) : move.y;
+                chess3D.highlightPossibleSquare(sf::Vector2f(render_move_x * chess3D.getSize().x, render_move_y * chess3D.getSize().y));
             }
         }
         if(_selectedSquare && _chessBoard.getPiece(_selectedSquare->x, _selectedSquare->y)){
@@ -186,7 +187,9 @@ void Game3D::gameLoop(){
                         continue;
                     }
                     if(_chessBoard.canMove(_selectedSquare->x, _selectedSquare->y, move_x, move_y)){
-                        chess3D.highlightPossibleSquare(sf::Vector2f(i * chess3D.getSize().x, j * chess3D.getSize().y));
+                        int render_i = mirrorX ? (horizontal - 1 - i) : i;
+                        int render_j = mirrorY ? (vertical - 1 - j) : j;
+                        chess3D.highlightPossibleSquare(sf::Vector2f(render_i * chess3D.getSize().x, render_j * chess3D.getSize().y));
                     }
                 }
             }
