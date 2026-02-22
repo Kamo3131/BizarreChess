@@ -50,6 +50,10 @@ void GameTerminal::enPassantTurnCycle(){
     }
 }
 
+void GameTerminal::restart(){
+    _chessBoard.reset();
+    _turn = 1;
+}
 bool GameTerminal::quitGame(){
     std::string command;
     while(true){
@@ -208,7 +212,10 @@ void GameTerminal::gameLoop(){
             std::cout << "Choose piece you want to move! Write code of the square it's standing at!\n";
             std::cout << "Example of squares: 1A, 03B, 6D. Make sure it's not out of bounds!\n";
             movePiece();
-        }
+        } 
+        else if(command == "R" || command == "RESTART"){
+            restart();
+        } 
         else{
             std::cout << "Invalid command! Try again.\n";
         }

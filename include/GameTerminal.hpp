@@ -53,6 +53,10 @@ class GameTerminal : public GameInterface{
      */
     bool surrender();
     /**
+     * @brief Restarts the game.
+     */
+    void restart();
+    /**
      * @brief Quits the game.
      * @return false if the game is quit, true otherwise
      */
