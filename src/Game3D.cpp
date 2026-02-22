@@ -30,8 +30,9 @@ bool Game3D::quitGame(){
     return true;
 }
 void Game3D::restart(){
-    
-
+    _chessBoard.reset();
+    _turn = 1;
+    _possibleMoves.clear();
 }
 
 void Game3D::movePiece(){
@@ -211,11 +212,9 @@ void Game3D::gameLoop(){
                     return;
                 }
             }
-            // if(ImGui::Button("Restart")){
-            //     if(surrender()){
-            //         return;
-            //     }
-            // }
+            if(ImGui::Button("Restart")){
+                restart();
+            }
         ImGui::End();
         ImGui::Begin("Game Status");
         ImGui::SeparatorText("Selection");
@@ -267,7 +266,10 @@ void Game3D::gameLoop(){
         DrawKingStatus("White King", Piece::Team::WHITE, wPos);
         std::pair<int, int> bPos = _chessBoard.getBlackKingsPosition();
         DrawKingStatus("Black King", Piece::Team::BLACK, bPos);
-
+        ImGui::Spacing();
+        ImGui::Text("%s: ", "Turn");
+        ImGui::SameLine();
+        ImGui::Text("%i", _turn);
         ImGui::End();
 
         window.pushGLStates();

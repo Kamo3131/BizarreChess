@@ -43,6 +43,18 @@ void ChessBoard::initPieces(){
     setPiece(4, 7, std::make_unique<King>(Piece::Team::BLACK));
     setBlackKingsPosition(4, 7);
 }
+void ChessBoard::reset() {
+    for(std::size_t i = 0; i<_horizontal; i++){
+            for(std::size_t j = 0; j<_vertical; j++){
+                if(getPiece(i, j)){
+                    killPiece(i, j);
+                }
+            }
+        }
+    init();
+    initPieces();
+    std::cout << "Board has been reset\n"; 
+}
 ChessBoard::ChessBoard() : _horizontal{8}, _vertical{8}{
     init();
 }
