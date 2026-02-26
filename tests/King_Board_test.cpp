@@ -330,7 +330,7 @@ TEST(KingBoardTests, NotInStalemateVer2){
 
 /**
  * Test if king surrounded by allied pieces or edges of board and one enemy Queen  gets checkmated.
- * @note: Doesn't work right now, needs fixing.
+ * @note Doesn't work right now, needs fixing.
  */
 TEST(KingBoardTests, SurroundedWhiteKingCheckmatedByQueenOnTheEdge){
     ChessBoard board;

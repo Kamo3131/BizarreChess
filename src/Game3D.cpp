@@ -266,10 +266,15 @@ void Game3D::gameLoop(){
         DrawKingStatus("White King", Piece::Team::WHITE, wPos);
         std::pair<int, int> bPos = _chessBoard.getBlackKingsPosition();
         DrawKingStatus("Black King", Piece::Team::BLACK, bPos);
-        ImGui::Spacing();
-        ImGui::Text("%s: ", "Turn");
+        ImGui::SeparatorText("Turn");
+        ImGui::Text("%s: ", "Number");
         ImGui::SameLine();
         ImGui::Text("%i", _turn);
+        if(_turn%2 == 1){
+            ImGui::Text("%s: %s", "Team", "white");
+        } else {
+            ImGui::Text("%s: %s", "Team", "black");
+        }
         ImGui::End();
 
         window.pushGLStates();

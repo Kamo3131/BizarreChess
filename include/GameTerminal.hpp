@@ -44,7 +44,7 @@ class GameTerminal : public GameInterface{
      * @param o_x Original x coordinate of the piece.
      * @param o_y Original y coordinate of the piece.
      * @details Prompts user to select a target square, validates input, and performs the move.
-     * @note: This method assumes is intended to be used after a piece has been selected with movePiece() or it's alternatives.
+     * @note This method assumes is intended to be used after a piece has been selected with movePiece() or it's alternatives.
      */
     void selectTargetSquare(std::size_t o_x, std::size_t o_y);
     /**

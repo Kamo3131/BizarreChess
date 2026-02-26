@@ -109,7 +109,8 @@ bool ChessBoard::canMove(const std::size_t o_x, const std::size_t o_y, const int
         // std::cerr << "Error: Cannot move, there is a piece on the path." << std::endl;
         return false;
     }
-    if(pieces[o_x][o_y]->getType() == Piece::Type::KING && inCheck(pieces[o_x][o_y]->getTeam(), std::make_pair(target_x, target_y))){
+    // if(pieces[o_x][o_y]->getType() == Piece::Type::KING && inCheck(pieces[o_x][o_y]->getTeam(), std::make_pair(target_x, target_y))){
+    if(kingWouldBeInCheck(pieces[o_x][o_y]->getTeam(), std::make_pair(o_x, o_y), std::make_pair(target_x, target_y))){
         // std::cerr << "Error: Cannot move, check on square: (" << static_cast<int>(o_x)+x << ", " << static_cast<int>(o_y)+y << ")\n";
         return false;
     }
