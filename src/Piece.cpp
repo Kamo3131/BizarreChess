@@ -30,6 +30,10 @@ void Piece::setDamage(const int damage){
 void Piece::increaseMoveNumber(){
     _move_number++;
 }
+
+void Piece::setMoveNumber(const int move_number){
+    _move_number = move_number;
+}
 int Piece::getMoveNumber() const{
     return _move_number;
 }
