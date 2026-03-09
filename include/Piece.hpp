@@ -122,7 +122,10 @@ struct Piece{
      * @brief Increments the move counter for the piece.
      */
     void increaseMoveNumber();
-    
+    /**
+     * @brief Sets move number.
+     */
+    void setMoveNumber(const int move_number);
     /**
      * @brief Gets the team of the piece.
      * @return The team to which the piece belongs.
