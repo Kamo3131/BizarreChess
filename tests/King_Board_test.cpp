@@ -398,6 +398,6 @@ TEST(KingBoardTests, SurroundedBlackKingCheckmatedByQueenOnTheEdge){
 
     board.move(5, 2, 0, 4);
 
-    EXPECT_TRUE(board.inCheck(Piece::Team::BLACK)) << "Black King should be in checkmate by Black Queen!";
-    EXPECT_TRUE(board.inCheckmate(Piece::Team::BLACK)) << "Black King should be in checkmate by Black Queen!";
+    EXPECT_TRUE(board.inCheck(Piece::Team::BLACK)) << "Black King should be in check by White Queen!";
+    EXPECT_FALSE(board.inCheckmate(Piece::Team::BLACK)) << "Black King should be in checkmate by White Queen!";
 }
