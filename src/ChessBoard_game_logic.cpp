@@ -298,24 +298,26 @@ bool ChessBoard::inCheck(const Piece::Team team) const{
 bool ChessBoard::kingWouldBeInCheck(const Piece::Team team, const size_pair starting_position, const size_pair shift_position) const{
     size_t o_x = starting_position.first;
     size_t o_y = starting_position.second;
-    if(pieces[o_x][o_y]->getType() != Piece::Type::KING) return false;
+    size_t t_x = shift_position.first;
+    size_t t_y = shift_position.second;
+    if(pieces[o_x][o_y] == nullptr || pieces[o_x][o_y]->getType() != Piece::Type::KING) return false;
 
-    const int target_shift_x = shift_position.first - o_x;
-    const int target_shift_y = shift_position.second - o_y; 
+    const int target_shift_x = t_x - o_x;
+    const int target_shift_y = t_y - o_y; 
     
-    if(inCheck(team, shift_position) && !pieces[o_x][o_y]->attack(target_shift_x, target_shift_y)){
-        return true;
-    }
-    std::unique_ptr<Piece> piece;
+    std::unique_ptr<Piece> piece = nullptr;
     if(pieces[shift_position.first][shift_position.second]){
-        piece = std::move(pieces[shift_position.first][shift_position.second]);
-        if(inCheck(team, shift_position)){
-            pieces[shift_position.first][shift_position.second] = std::move(piece);
-            return true;
-        }
-        pieces[shift_position.first][shift_position.second] = std::move(piece);
-    } 
-    return false;
+        piece = std::move(pieces[t_x][t_y]); 
+    }
+    pieces[t_x][t_y] = std::move(pieces[o_x][o_y]);
+    bool is_in_check = inCheck(team, shift_position);
+    pieces[o_x][o_y] = std::move(pieces[t_x][t_y]);
+
+    if(piece) {
+        pieces[t_x][t_y] = std::move(piece);
+    }
+
+    return is_in_check;
 }
 
 bool ChessBoard::inCheckmate(const Piece::Team team) const{
