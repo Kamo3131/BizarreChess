@@ -86,10 +86,19 @@ bool ChessBoard::canMove(const std::size_t o_x, const std::size_t o_y, const int
     if(target_x < 0 || target_x >= static_cast<int>(_horizontal) || target_y < 0 || target_y >= static_cast<int>(_vertical)){
         return false;
     }
+
+    if(pieces[o_x][o_y]->getType() == Piece::Type::KING) {
+        if(canCastle(o_x, o_y, x, y)) {
+            return true; 
+        }
+    }
     if(pieces[target_x][target_y] && pieces[target_x][target_y]->getTeam() == pieces[o_x][o_y]->getTeam()){
         // std::cerr << "Error: Cannot move, there is an allied piece on the square: (" << static_cast<int>(o_x)+x << ", " << static_cast<int>(o_y)+y << ")\n";
         return false;
     }
+    // if(canCastle(o_x, o_y, x, y)) {
+    //     return true;
+    // }
 
     bool isAttack = (pieces[target_x][target_y] != nullptr) || enPassantAvailable(o_x, o_y, x, y);
     bool validPath = false;
@@ -140,12 +149,18 @@ bool ChessBoard::canAttackKing(const std::size_t o_x, const std::size_t o_y, con
     return pieces[o_x][o_y]->move(x, y);
 }
 bool ChessBoard::canCastle(const std::size_t o_x, const std::size_t o_y, const int x, const int y) const {
+    if(!pieces[o_x+x][o_y+y]) {
+        return false;
+    }
     if(pieces[o_x][o_y]->getType() != Piece::Type::KING || pieces[o_x+x][o_y+y]->getType() != Piece::Type::ROOK){
-        std::cerr << "Error: Castling can only be performed with a King and a Rook." << std::endl;
+        // std::cerr << "Error: Castling can only be performed with a King and a Rook." << std::endl;
+        return false;
+    }
+    if(pieces[o_x][o_y]->getTeam() != pieces[o_x+x][o_y+y]->getTeam()) {
         return false;
     }
     if(pieces[o_x+x][o_y+y]->getMoveNumber() > 0 || pieces[o_x][o_y]->getMoveNumber() > 0){
-        std::cerr << "Error: Castling cannot be performed as either the King or the Rook has already moved." << std::endl;
+        // std::cerr << "Error: Castling cannot be performed as either the King or the Rook has already moved." << std::endl;
         return false;
     }
     bool direction = (x > 0) ? true : false;
@@ -153,12 +168,11 @@ bool ChessBoard::canCastle(const std::size_t o_x, const std::size_t o_y, const i
     int end_x = static_cast<int>(o_x) + x;
     for(; direction ? start_x < end_x : start_x > end_x; start_x += direction ? 1 : -1){
         if(pieces[start_x][o_y] != nullptr){
-            std::cout << "Cannot castle, there is a piece at (" << start_x << ", " << o_y << ")." << std::endl;
+            // std::cout << "Cannot castle, there is a piece at (" << start_x << ", " << o_y << ")." << std::endl;
             return false;
         }
     }
     return true;
-
 }
 void ChessBoard::castling(const std::size_t k_x, const std::size_t r_x){
     if(r_x < k_x){
