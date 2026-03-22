@@ -52,7 +52,8 @@ void ChessBoard::move(const std::size_t o_x, const std::size_t o_y, const int x,
     // If castling can be performed
     else if(canCastle(o_x, o_y, x, y)){
         std::cout << pieces[o_x][o_y]->getName() << " is castling with " << pieces[o_x+x][o_y+y]->getName() << " at (" << o_x+x << ", " << o_y+y << ")." << std::endl;
-        castling(o_x, o_x+x);
+        castling(o_x, o_x+x, team);
+        return;
     }
     else {
         std::cout << pieces[o_x][o_y]->getName() << " cannot be moved to this square." << std::endl;
@@ -174,19 +175,20 @@ bool ChessBoard::canCastle(const std::size_t o_x, const std::size_t o_y, const i
     }
     return true;
 }
-void ChessBoard::castling(const std::size_t k_x, const std::size_t r_x){
+void ChessBoard::castling(const std::size_t k_x, const std::size_t r_x, const Piece::Team team){
+    size_t y = Piece::Team::WHITE == team ? 0 : 7; 
     if(r_x < k_x){
-        pieces[k_x][0] -> increaseMoveNumber();
-        pieces[k_x-2][0] = std::move(pieces[k_x][0]);
-        // pieces[k_x][0] == nullptr;
-        pieces[k_x-1][0] = std::move(pieces[r_x][0]);
-        // pieces[r_x][0] == nullptr;
+        pieces[k_x][y] -> increaseMoveNumber();
+        pieces[k_x-2][y] = std::move(pieces[k_x][y]);
+        // pieces[k_x][y] == nullptr;
+        pieces[k_x-1][y] = std::move(pieces[r_x][y]);
+        // pieces[r_x][y] == nullptr;
     } else if(r_x > k_x){
-        pieces[k_x][0] -> increaseMoveNumber();
-        pieces[k_x+2][0] = std::move(pieces[k_x][0]);
-        // pieces[k_x][0] == nullptr;
-        pieces[k_x+1][0] = std::move(pieces[r_x][0]);
-        // pieces[r_x][0] == nullptr;
+        pieces[k_x][y] -> increaseMoveNumber();
+        pieces[k_x+2][y] = std::move(pieces[k_x][y]);
+        // pieces[k_x][y] == nullptr;
+        pieces[k_x+1][y] = std::move(pieces[r_x][y]);
+        // pieces[r_x][y] == nullptr;
     } else {
         std::cerr << "Error: Invalid castling move." << std::endl;
     }

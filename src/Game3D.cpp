@@ -313,10 +313,32 @@ void Game3D::handleMouseClick(const Chessboard3D chess3D, int mouseX, int mouseY
         return; 
     }
     std::unique_ptr<Piece>& targetPiece = _chessBoard.getPiece(square->x, square->y);
+    std::unique_ptr<Piece>& piece = _chessBoard.getPiece(_selectedSquare->x, _selectedSquare->y);
 
-    bool isFriendly = targetPiece && ((targetPiece->getTeam() == Piece::Team::WHITE && getTurn() % 2 == 1) || (targetPiece->getTeam() == Piece::Team::BLACK && getTurn() % 2 == 0));
-    if(!_selectedSquare || isFriendly){
-        if(isFriendly){
+    bool targetIsFriendly = targetPiece && ((targetPiece->getTeam() == Piece::Team::WHITE && getTurn() % 2 == 1) || (targetPiece->getTeam() == Piece::Team::BLACK && getTurn() % 2 == 0));
+    //Player should be able to choose if they want to castle with the ROOK
+    bool choiceToCastle = true;
+    if (piece && piece->getType() == Piece::KING && targetIsFriendly && targetPiece->getType() == Piece::ROOK && choiceToCastle) {
+        sf::Vector2i moveVector = sf::Vector2i(square->x - _selectedSquare->x, square->y - _selectedSquare->y);
+        std::cout << "Castling with Rook on square (" << square->x << ", " << square->y << ")!\n"; 
+        if(_chessBoard.canMove(_selectedSquare->x, _selectedSquare->y, moveVector.x, moveVector.y)){
+            std::cout << "Piece can move!\n";
+            enPassantTurnCycle();
+            std::cout << "Turn cycle\n";
+            _chessBoard.move(_selectedSquare->x, _selectedSquare->y, moveVector.x, moveVector.y);
+            std::cout << "Move complete\n";
+            nextTurn();
+            _selectedSquare.reset();
+            _possibleMoves.clear();
+        } else {
+            std::cout << "Piece can't move to this square!\n";
+            _selectedSquare.reset();
+            _possibleMoves.clear();
+        }
+        return;
+    }
+    else if(!_selectedSquare || targetIsFriendly){
+        if(targetIsFriendly){
             std::cout << "Square with piece (" << square->x << ", " << square->y << ") selected!\n"; 
             _selectedSquare = square;
             updatePossibleMoves();
@@ -326,7 +348,6 @@ void Game3D::handleMouseClick(const Chessboard3D chess3D, int mouseX, int mouseY
     }
     else {
         sf::Vector2i moveVector = sf::Vector2i(square->x - _selectedSquare->x, square->y - _selectedSquare->y);
-        std::unique_ptr<Piece>& piece = _chessBoard.getPiece(_selectedSquare->x, _selectedSquare->y);
         std::cout << "Square (" << square->x << ", " << square->y << ") selected!\n"; 
         if(piece){
 
