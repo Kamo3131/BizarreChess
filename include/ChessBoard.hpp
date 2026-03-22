@@ -107,7 +107,7 @@ class ChessBoard{
      * @param r_x rook's horizontal position.
      * @note This function assumes that the king and rook are on the same row.
      */
-    void castling(const std::size_t k_x, const std::size_t r_x);
+    void castling(const std::size_t k_x, const std::size_t r_x, const Piece::Team team);
     /**
      * @brief User chooses which piece pawn will be promoted to.
      * @param o_x original x tile value

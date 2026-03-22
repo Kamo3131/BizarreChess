@@ -224,11 +224,12 @@ TEST(ChessBoardTests, DamagePieceByCustomValueKillsWithTwoHealth){
  */
 TEST(ChessBoardTests, CastlingRight) {
     ChessBoard board;
-    std::unique_ptr<Piece> king = std::make_unique<King>(Piece::Team::WHITE);
-    std::unique_ptr<Piece> rook = std::make_unique<Rook>(Piece::Team::WHITE);
+    constexpr Piece::Team team = Piece::Team::WHITE;
+    std::unique_ptr<Piece> king = std::make_unique<King>(team);
+    std::unique_ptr<Piece> rook = std::make_unique<Rook>(team);
     board.setPiece(4, 0, std::move(king)); // Place king at e1
     board.setPiece(7, 0, std::move(rook)); // Place rook at h1
-    board.castling(4, 7); // Perform castling
+    board.castling(4, 7, team); // Perform castling
     EXPECT_FALSE(board.isPieceAt(4, 0)) << "King should not be at e1 after castling!";
     EXPECT_TRUE(board.isPieceAt(6, 0)) << "King should be at g1 after castling!";
     EXPECT_FALSE(board.isPieceAt(7, 0)) << "Rook should not be at h1 after castling!";
@@ -239,11 +240,12 @@ TEST(ChessBoardTests, CastlingRight) {
  */
 TEST(ChessBoardTests, CastlingLeft) {
     ChessBoard board;
-    std::unique_ptr<Piece> king = std::make_unique<King>(Piece::Team::WHITE);
-    std::unique_ptr<Piece> rook = std::make_unique<Rook>(Piece::Team::WHITE);
+    constexpr Piece::Team team = Piece::Team::WHITE;
+    std::unique_ptr<Piece> king = std::make_unique<King>(team);
+    std::unique_ptr<Piece> rook = std::make_unique<Rook>(team);
     board.setPiece(4, 0, std::move(king)); // Place king at e1
     board.setPiece(0, 0, std::move(rook)); // Place rook at a1
-    board.castling(4, 0); // Perform castling
+    board.castling(4, 0, team); // Perform castling
     EXPECT_FALSE(board.isPieceAt(4, 0)) << "King should not be at e1 after castling!";
     EXPECT_TRUE(board.isPieceAt(2, 0)) << "King should be at c1 after castling!";
     EXPECT_FALSE(board.isPieceAt(0, 0)) << "Rook should not be at a1 after castling!";
