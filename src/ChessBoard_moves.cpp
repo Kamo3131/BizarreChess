@@ -179,16 +179,26 @@ void ChessBoard::castling(const std::size_t k_x, const std::size_t r_x, const Pi
     size_t y = Piece::Team::WHITE == team ? 0 : 7; 
     if(r_x < k_x){
         pieces[k_x][y] -> increaseMoveNumber();
-        pieces[k_x-2][y] = std::move(pieces[k_x][y]);
-        // pieces[k_x][y] == nullptr;
-        pieces[k_x-1][y] = std::move(pieces[r_x][y]);
-        // pieces[r_x][y] == nullptr;
+        const std::size_t new_king_x = k_x-2; 
+        pieces[new_king_x][y] = std::move(pieces[k_x][y]);
+        if(team == Piece::Team::WHITE) {
+            setWhiteKingsPosition(new_king_x, y);
+        } else {
+            setBlackKingsPosition(new_king_x, y);
+        }
+        const std::size_t new_rook_x = k_x-1; 
+        pieces[new_rook_x][y] = std::move(pieces[r_x][y]);
     } else if(r_x > k_x){
         pieces[k_x][y] -> increaseMoveNumber();
-        pieces[k_x+2][y] = std::move(pieces[k_x][y]);
-        // pieces[k_x][y] == nullptr;
-        pieces[k_x+1][y] = std::move(pieces[r_x][y]);
-        // pieces[r_x][y] == nullptr;
+        const std::size_t new_king_x = k_x+2; 
+        pieces[new_king_x][y] = std::move(pieces[k_x][y]);
+        if(team == Piece::Team::WHITE) {
+            setWhiteKingsPosition(new_king_x, y);
+        } else {
+            setBlackKingsPosition(new_king_x, y);
+        }
+        const std::size_t new_rook_x = k_x+1; 
+        pieces[new_rook_x][y] = std::move(pieces[r_x][y]);
     } else {
         std::cerr << "Error: Invalid castling move." << std::endl;
     }
