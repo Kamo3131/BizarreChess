@@ -84,6 +84,94 @@ void Game3D::updatePossibleMoves(){
         }
     }
 }
+
+void Game3D::inGameControlsMenu(){
+    ImGui::Begin("Debug Menu");
+    ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
+    ImGui::SliderFloat("Zoom", &_zoom, 0.5f, 4.0f);
+
+    if(ImGui::Button("Quit")){
+        if(quitGame()){
+            return;
+        }
+    }
+    if(ImGui::Button("Surrender")){
+        if(surrender()){
+            return;
+        }
+    }
+    if(ImGui::Button("Restart")){
+        restart();
+    }
+    if(ImGui::Button("Undo")){
+        std::cout << "Undo\n";
+    }
+    ImGui::SameLine();
+    if(ImGui::Button("Redo")){
+        std::cout << "Redo\n";
+    }
+    ImGui::End();
+    ImGui::Begin("Game Status");
+    ImGui::SeparatorText("Selection");
+    if (_selectedSquare->x >= 0 && _selectedSquare->x < 8 && _selectedSquare->y >= 0 && _selectedSquare->y < 8) {
+        ImGui::Text("Square: (%d, %d)", _selectedSquare->x, _selectedSquare->y);
+        std::unique_ptr<Piece>& piece = _chessBoard.getPiece(_selectedSquare->x, _selectedSquare->y);
+        if (piece) {
+            ImGui::SameLine();
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "[%s]", piece->getName().c_str());
+        } else {
+            ImGui::SameLine();
+            ImGui::TextDisabled("[Empty]");
+        }
+    } else {
+        ImGui::TextDisabled("No square selected");
+    }
+    ImGui::Spacing();
+    ImGui::SeparatorText("King Status");
+    bool isCheckmate = false, isStalemate = false;
+    // Helper lambda to draw status text
+    auto DrawKingStatus = [&](const char* label, Piece::Team team, std::pair<int, int> kingPos) {
+        isCheckmate = _chessBoard.inCheckmate(team);
+        bool isCheck = false;
+                    
+        ImGui::Text("%s:", label);
+        ImGui::SameLine();
+        if(!isCheckmate){
+            isStalemate = _chessBoard.inStalemate(team);
+        } else {
+            ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "CHECKMATED!");
+            return; 
+        }
+        if(!isStalemate){
+            isCheck = _chessBoard.inCheck(team, kingPos);
+        } else {
+            ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.2f, 1.0f), "IT'S A STALEMATE!");
+            return; 
+        }
+        
+        if (isCheck) {
+            ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.2f, 1.0f), "IN CHECK!");
+            return; 
+        } else {
+            ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Safe");
+            return;
+        }
+    };
+    std::pair<int, int> wPos = _chessBoard.getWhiteKingsPosition();
+    DrawKingStatus("White King", Piece::Team::WHITE, wPos);
+    std::pair<int, int> bPos = _chessBoard.getBlackKingsPosition();
+    DrawKingStatus("Black King", Piece::Team::BLACK, bPos);
+    ImGui::SeparatorText("Turn");
+    ImGui::Text("%s: ", "Number");
+    ImGui::SameLine();
+    ImGui::Text("%i", _turn);
+    if(_turn%2 == 1){
+        ImGui::Text("%s: %s", "Team", "white");
+    } else {
+        ImGui::Text("%s: %s", "Team", "black");
+    }
+    ImGui::End();
+}
 void Game3D::gameLoop(){
     sf::ContextSettings settings;
     settings.depthBits = 24;
@@ -101,7 +189,7 @@ void Game3D::gameLoop(){
     int horizontal = _chessBoard.getHorizontal();
     int vertical = _chessBoard.getVertical();
     initOpengl();
-    bool isCheckmate = false, isStalemate = false;
+
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -197,86 +285,8 @@ void Game3D::gameLoop(){
         }
         glEnable(GL_LIGHTING);
 
-
-        ImGui::Begin("Debug Menu");
-            ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-            ImGui::SliderFloat("Zoom", &_zoom, 0.5f, 4.0f);
-
-            if(ImGui::Button("Quit")){
-                if(quitGame()){
-                    return;
-                }
-            }
-            if(ImGui::Button("Surrender")){
-                if(surrender()){
-                    return;
-                }
-            }
-            if(ImGui::Button("Restart")){
-                restart();
-            }
-        ImGui::End();
-        ImGui::Begin("Game Status");
-        ImGui::SeparatorText("Selection");
-        if (_selectedSquare->x >= 0 && _selectedSquare->x < 8 && _selectedSquare->y >= 0 && _selectedSquare->y < 8) {
-            ImGui::Text("Square: (%d, %d)", _selectedSquare->x, _selectedSquare->y);
-            std::unique_ptr<Piece>& piece = _chessBoard.getPiece(_selectedSquare->x, _selectedSquare->y);
-            if (piece) {
-                ImGui::SameLine();
-                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "[%s]", piece->getName().c_str());
-            } else {
-                ImGui::SameLine();
-                ImGui::TextDisabled("[Empty]");
-            }
-        } else {
-            ImGui::TextDisabled("No square selected");
-        }
-        ImGui::Spacing();
-        ImGui::SeparatorText("King Status");
-
-        // Helper lambda to draw status text
-        auto DrawKingStatus = [&](const char* label, Piece::Team team, std::pair<int, int> kingPos) {
-            isCheckmate = _chessBoard.inCheckmate(team);
-            bool isCheck = false;
-                        
-            ImGui::Text("%s:", label);
-            ImGui::SameLine();
-            if(!isCheckmate){
-                isStalemate = _chessBoard.inStalemate(team);
-            } else {
-                ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "CHECKMATED!");
-                return; 
-            }
-            if(!isStalemate){
-                isCheck = _chessBoard.inCheck(team, kingPos);
-            } else {
-                ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.2f, 1.0f), "IT'S A STALEMATE!");
-                return; 
-            }
-            
-            if (isCheck) {
-                ImGui::TextColored(ImVec4(1.0f, 0.5f, 0.2f, 1.0f), "IN CHECK!");
-                return; 
-            } else {
-                ImGui::TextColored(ImVec4(0.2f, 1.0f, 0.2f, 1.0f), "Safe");
-                return;
-            }
-        };
-        std::pair<int, int> wPos = _chessBoard.getWhiteKingsPosition();
-        DrawKingStatus("White King", Piece::Team::WHITE, wPos);
-        std::pair<int, int> bPos = _chessBoard.getBlackKingsPosition();
-        DrawKingStatus("Black King", Piece::Team::BLACK, bPos);
-        ImGui::SeparatorText("Turn");
-        ImGui::Text("%s: ", "Number");
-        ImGui::SameLine();
-        ImGui::Text("%i", _turn);
-        if(_turn%2 == 1){
-            ImGui::Text("%s: %s", "Team", "white");
-        } else {
-            ImGui::Text("%s: %s", "Team", "black");
-        }
-        ImGui::End();
-
+        inGameControlsMenu();
+        
         window.pushGLStates();
         ImGui::SFML::Render(window);
         window.popGLStates();

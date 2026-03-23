@@ -79,6 +79,8 @@ class Game3D : public GameInterface {
      */
     void handleMouseClick(const Chessboard3D, int mouseX, int mouseY);
     void renderShaderBackground(sf::RenderWindow& window, float time) const;
+
+
     private:
     void initOpengl() const;
     /**
@@ -89,6 +91,10 @@ class Game3D : public GameInterface {
      * @brief manages the camera settings.
      */
     void setupCamera() const;
+    /**
+     * @brief renders in-game imgui menu.
+     */
+    inline void inGameControlsMenu();
     int _turn;
     float _zoom;
     std::optional<sf::Vector2i> _selectedSquare;
