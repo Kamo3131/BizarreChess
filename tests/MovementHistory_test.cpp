@@ -23,8 +23,8 @@ TEST(MovementHistoryTests, CorrectIndexSet) {
         std::cout << i << " ";
         history.pushNew(*boards.at(i));
     }
-    history.setIndex(102);
-    EXPECT_FALSE(history.getIndex() == 19) << "Index should not be greater than size of m_history!";
+    history.setIndex(24);
+    EXPECT_FALSE(history.getIndex() == 24) << "Index should not be greater than size of m_history!";
     history.setIndex(10);
     EXPECT_TRUE(history.getIndex() == 10) << "Index should be changed!";
 }

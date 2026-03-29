@@ -15,6 +15,8 @@ struct PieceDataContainer {
 };
 struct ChessboardData {
     FastVector<PieceDataContainer, 64> m_pieces;
+    std::size_t x = 8;
+    std::size_t y = 8;
 };
 /**
  * @brief Movement history of fixed number of turns, that happened before current turn.
@@ -31,6 +33,10 @@ class MovementHistory {
      * @param board is added to m_history.
      */
     void pushNew(const ChessBoard & board);
+    /**
+     * @brief Creates board from the data at current index.
+     */
+    ChessBoard getBoard() const;
     /**
      * @brief pops last element of m_history.
      */

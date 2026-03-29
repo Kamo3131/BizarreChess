@@ -39,6 +39,12 @@ class FastVector {
             }
         }
         FastVector& operator=(FastVector&& other) noexcept {
+            if(this == other) {return *this;}
+            clear();
+            
+            if(is_heap_allocated()){
+                ::operator delete(data_ptr);
+            }
             current_size = other.current_size;
             current_capacity = other.current_capacity;
             if(other.is_heap_allocated()){
@@ -58,13 +64,16 @@ class FastVector {
             }
         }
         reference at(size_type position) const {
-            if(position > current_size){
+            if(position >= current_size){
                 throw std::out_of_range("Position out of bounds of the vector");
             }
             return data_ptr[position];
         }
 
-        reference operator[](size_type position) const {
+        reference operator[](size_type position) {
+            return data_ptr[position];
+        }
+        const_reference operator[](size_type position) const{
             return data_ptr[position];
         }
         void clear() noexcept{
@@ -75,6 +84,12 @@ class FastVector {
         }
         size_type size() const noexcept{
             return current_size;
+        }
+        bool empty() const noexcept {
+            if(current_size <= 0) {
+                return true;
+            }
+            return false;
         }
         void pop_back(){
             if (current_size > 0){
