@@ -4,14 +4,14 @@
 #include <sstream>
 #include <regex>
 
-Game3D::Game3D() : _turn{1}, _zoom{0.850f}, _chessBoard{8, 8}{
-    _chessBoard.initPieces();
+Game3D::Game3D() : _turn{1}, _zoom{0.850f}, _chessBoard{std::make_unique<ChessBoard>(8, 8)}{
+    _chessBoard->initPieces();
 }
 
-Game3D::Game3D(const size horizontal, const size vertical) : _turn{1}, _zoom{0.850f}, _chessBoard{horizontal, vertical}{
-    _chessBoard.initPieces();
+Game3D::Game3D(const size horizontal, const size vertical) : _turn{1}, _zoom{0.850f}, _chessBoard{std::make_unique<ChessBoard>(horizontal, vertical)}{
+    _chessBoard->initPieces();
 }
-Game3D::Game3D(const int turn, ChessBoard&& chessBoard) : _turn{turn}, _zoom{0.850f}, _chessBoard{std::move(chessBoard)}{
+Game3D::Game3D(const int turn, ChessBoard&& chessBoard) : _turn{turn}, _zoom{0.850f}, _chessBoard{std::make_unique<ChessBoard>(std::move(chessBoard))}{
     
 }
 bool Game3D::surrender(){
@@ -20,9 +20,9 @@ bool Game3D::surrender(){
 
 void Game3D::enPassantTurnCycle(){
     if(_turn % 2 == 0){
-        _chessBoard.enPassantTurnUpdate(Piece::Team::BLACK);
+        _chessBoard->enPassantTurnUpdate(Piece::Team::BLACK);
     } else{
-        _chessBoard.enPassantTurnUpdate(Piece::Team::WHITE);
+        _chessBoard->enPassantTurnUpdate(Piece::Team::WHITE);
     }
 }
 
@@ -30,7 +30,7 @@ bool Game3D::quitGame(){
     return true;
 }
 void Game3D::restart(){
-    _chessBoard.reset();
+    _chessBoard->reset();
     _turn = 1;
     _possibleMoves.clear();
 }
@@ -65,8 +65,8 @@ void Game3D::updatePossibleMoves(){
     if(!_selectedSquare){
         return;
     }
-    std::size_t width = _chessBoard.getHorizontal();
-    std::size_t height = _chessBoard.getVertical();
+    std::size_t width = _chessBoard->getHorizontal();
+    std::size_t height = _chessBoard->getVertical();
     if((_selectedSquare->x < 0 || _selectedSquare->x >= width) 
     && (_selectedSquare->y < 0 || _selectedSquare->y >= height)){
         return;
@@ -78,7 +78,7 @@ void Game3D::updatePossibleMoves(){
             float move_y = static_cast<float>(j) - _selectedSquare->y; 
             // std::cout << move_x << " " << move_y << std::endl;
             if(0 == move_x && 0 == move_y) continue;
-            if(_chessBoard.canMove(static_cast<size_t>(_selectedSquare->x), static_cast<size_t>(_selectedSquare->y), move_x, move_y)){
+            if(_chessBoard->canMove(static_cast<size_t>(_selectedSquare->x), static_cast<size_t>(_selectedSquare->y), move_x, move_y)){
                 _possibleMoves.emplace_back(i, j);
             }
         }
@@ -104,10 +104,12 @@ void Game3D::inGameControlsMenu(){
         restart();
     }
     if(ImGui::Button("Undo")){
+        undo();
         std::cout << "Undo\n";
     }
     ImGui::SameLine();
     if(ImGui::Button("Redo")){
+        redo();
         std::cout << "Redo\n";
     }
     ImGui::End();
@@ -115,7 +117,7 @@ void Game3D::inGameControlsMenu(){
     ImGui::SeparatorText("Selection");
     if (_selectedSquare->x >= 0 && _selectedSquare->x < 8 && _selectedSquare->y >= 0 && _selectedSquare->y < 8) {
         ImGui::Text("Square: (%d, %d)", _selectedSquare->x, _selectedSquare->y);
-        std::unique_ptr<Piece>& piece = _chessBoard.getPiece(_selectedSquare->x, _selectedSquare->y);
+        std::unique_ptr<Piece>& piece = _chessBoard->getPiece(_selectedSquare->x, _selectedSquare->y);
         if (piece) {
             ImGui::SameLine();
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.0f, 1.0f), "[%s]", piece->getName().c_str());
@@ -131,19 +133,19 @@ void Game3D::inGameControlsMenu(){
     bool isCheckmate = false, isStalemate = false;
     // Helper lambda to draw status text
     auto DrawKingStatus = [&](const char* label, Piece::Team team, std::pair<int, int> kingPos) {
-        isCheckmate = _chessBoard.inCheckmate(team);
+        isCheckmate = _chessBoard->inCheckmate(team);
         bool isCheck = false;
                     
         ImGui::Text("%s:", label);
         ImGui::SameLine();
         if(!isCheckmate){
-            isStalemate = _chessBoard.inStalemate(team);
+            isStalemate = _chessBoard->inStalemate(team);
         } else {
             ImGui::TextColored(ImVec4(1.0f, 0.2f, 0.2f, 1.0f), "CHECKMATED!");
             return; 
         }
         if(!isStalemate){
-            isCheck = _chessBoard.inCheck(team, kingPos);
+            isCheck = _chessBoard->inCheck(team, kingPos);
         } else {
             ImGui::TextColored(ImVec4(1.0f, 1.0f, 0.2f, 1.0f), "IT'S A STALEMATE!");
             return; 
@@ -157,9 +159,9 @@ void Game3D::inGameControlsMenu(){
             return;
         }
     };
-    std::pair<int, int> wPos = _chessBoard.getWhiteKingsPosition();
+    std::pair<int, int> wPos = _chessBoard->getWhiteKingsPosition();
     DrawKingStatus("White King", Piece::Team::WHITE, wPos);
-    std::pair<int, int> bPos = _chessBoard.getBlackKingsPosition();
+    std::pair<int, int> bPos = _chessBoard->getBlackKingsPosition();
     DrawKingStatus("Black King", Piece::Team::BLACK, bPos);
     ImGui::SeparatorText("Turn");
     ImGui::Text("%s: ", "Number");
@@ -186,10 +188,10 @@ void Game3D::gameLoop(){
     sf::Clock deltaClock;
     float totalTime = 0.0f;
     Chessboard3D chess3D(sf::Vector2f(1.0f, 1.0f));
-    int horizontal = _chessBoard.getHorizontal();
-    int vertical = _chessBoard.getVertical();
+    int horizontal = _chessBoard->getHorizontal();
+    int vertical = _chessBoard->getVertical();
     initOpengl();
-
+    _movementHistory.pushNew(*_chessBoard);
     while (window.isOpen()) {
         sf::Event event;
         while (window.pollEvent(event)) {
@@ -206,9 +208,9 @@ void Game3D::gameLoop(){
         if (_selectedSquare) {
             if (_selectedSquare->x < 0 ||
                 _selectedSquare->y < 0 ||
-                _selectedSquare->x >= _chessBoard.getHorizontal() ||
-                _selectedSquare->y >= _chessBoard.getVertical() ||
-                !_chessBoard.getPiece(_selectedSquare->x,
+                _selectedSquare->x >= _chessBoard->getHorizontal() ||
+                _selectedSquare->y >= _chessBoard->getVertical() ||
+                !_chessBoard->getPiece(_selectedSquare->x,
                                     _selectedSquare->y)) {
                 _selectedSquare.reset();
                 _possibleMoves.clear();
@@ -242,8 +244,8 @@ void Game3D::gameLoop(){
                 if(0 == render_j) chess3D.drawChessboardWall(drawPos, Chessboard3D::Direction::NORTH);
                 if((vertical - 1) == render_j) chess3D.drawChessboardWall(drawPos, Chessboard3D::Direction::SOUTH);
                 
-                if(_chessBoard.getPiece(static_cast<size_t>(i), static_cast<size_t>(j))){
-                    std::unique_ptr<Piece> &piece = _chessBoard.getPiece(static_cast<size_t>(i), static_cast<size_t>(j));
+                if(_chessBoard->getPiece(static_cast<size_t>(i), static_cast<size_t>(j))){
+                    std::unique_ptr<Piece> &piece = _chessBoard->getPiece(static_cast<size_t>(i), static_cast<size_t>(j));
                     chess3D.drawPiece(piece->getType(), piece->getTeam(), sf::Vector2i(static_cast<int>(draw_x),
                     static_cast<int>(draw_y)));
                     if(_selectedSquare && i == _selectedSquare->x && j == _selectedSquare->y){
@@ -261,7 +263,7 @@ void Game3D::gameLoop(){
                 chess3D.highlightPossibleSquare(sf::Vector2f(render_move_x * chess3D.getSize().x, render_move_y * chess3D.getSize().y));
             }
         }
-        if(_selectedSquare && _chessBoard.getPiece(_selectedSquare->x, _selectedSquare->y)){
+        if(_selectedSquare && _chessBoard->getPiece(_selectedSquare->x, _selectedSquare->y)){
             for(int i = horizontal - 1; i > -1; i--){
                 for(int j = vertical - 1; j > -1; j--){
                     float move_x = i - _selectedSquare->x;
@@ -275,7 +277,7 @@ void Game3D::gameLoop(){
                         std::cout << "Cannot move out of bonds!\n";
                         continue;
                     }
-                    if(_chessBoard.canMove(_selectedSquare->x, _selectedSquare->y, move_x, move_y)){
+                    if(_chessBoard->canMove(_selectedSquare->x, _selectedSquare->y, move_x, move_y)){
                         int render_i = mirrorX ? (horizontal - 1 - i) : i;
                         int render_j = mirrorY ? (vertical - 1 - j) : j;
                         chess3D.highlightPossibleSquare(sf::Vector2f(render_i * chess3D.getSize().x, render_j * chess3D.getSize().y));
@@ -298,6 +300,7 @@ void Game3D::gameLoop(){
 }
 void Game3D::nextTurn(){
     _turn++;
+    _movementHistory.pushNew(*_chessBoard);
 }
 void Game3D::previousTurn(){
     _turn--;
@@ -305,8 +308,29 @@ void Game3D::previousTurn(){
 int Game3D::getTurn() const {
     return _turn;
 }
+void Game3D::undo(){
+    if (_movementHistory.canUndo()) {
+        _movementHistory.undo();
+        _chessBoard = std::make_unique<ChessBoard>(_movementHistory.getBoard());
+        --_turn; 
+        
+        std::cout << "Undo successful. Current turn: " << _turn << std::endl;
+    } else {
+        std::cout << "Nothing to undo!" << std::endl;
+    }
+}
+void Game3D::redo(){
+    if(_movementHistory.canRedo()) {
+        _movementHistory.redo();
+        _chessBoard = std::make_unique<ChessBoard>(_movementHistory.getBoard());
+        ++_turn;
+        std::cout << "Redo successful. Current turn: " << _turn << std::endl;
+    } else {
+        std::cout << "Nothing to redo!" << std::endl;   
+    }
+}
 const ChessBoard& Game3D::getChessBoard() const {
-    return _chessBoard;
+    return *_chessBoard;
 }
 
 void Game3D::handleMouseClick(const Chessboard3D chess3D, int mouseX, int mouseY){
@@ -316,14 +340,14 @@ void Game3D::handleMouseClick(const Chessboard3D chess3D, int mouseX, int mouseY
         return;
     }
     std::optional<sf::Vector2i> square = _raySelection.worldToBoardSquare(chess3D, 
-        _chessBoard.getHorizontal(), _chessBoard.getVertical());
+        _chessBoard->getHorizontal(), _chessBoard->getVertical());
 
     if(!square){
         std::cout << "No square selected!\n";
         return; 
     }
-    std::unique_ptr<Piece>& targetPiece = _chessBoard.getPiece(square->x, square->y);
-    std::unique_ptr<Piece>& piece = _chessBoard.getPiece(_selectedSquare->x, _selectedSquare->y);
+    std::unique_ptr<Piece>& targetPiece = _chessBoard->getPiece(square->x, square->y);
+    std::unique_ptr<Piece>& piece = _chessBoard->getPiece(_selectedSquare->x, _selectedSquare->y);
 
     bool targetIsFriendly = targetPiece && ((targetPiece->getTeam() == Piece::Team::WHITE && getTurn() % 2 == 1) || (targetPiece->getTeam() == Piece::Team::BLACK && getTurn() % 2 == 0));
     //Player should be able to choose if they want to castle with the ROOK
@@ -331,11 +355,11 @@ void Game3D::handleMouseClick(const Chessboard3D chess3D, int mouseX, int mouseY
     if (piece && piece->getType() == Piece::KING && targetIsFriendly && targetPiece->getType() == Piece::ROOK && choiceToCastle) {
         sf::Vector2i moveVector = sf::Vector2i(square->x - _selectedSquare->x, square->y - _selectedSquare->y);
         std::cout << "Castling with Rook on square (" << square->x << ", " << square->y << ")!\n"; 
-        if(_chessBoard.canMove(_selectedSquare->x, _selectedSquare->y, moveVector.x, moveVector.y)){
+        if(_chessBoard->canMove(_selectedSquare->x, _selectedSquare->y, moveVector.x, moveVector.y)){
             std::cout << "Piece can move!\n";
             enPassantTurnCycle();
             std::cout << "Turn cycle\n";
-            _chessBoard.move(_selectedSquare->x, _selectedSquare->y, moveVector.x, moveVector.y);
+            _chessBoard->move(_selectedSquare->x, _selectedSquare->y, moveVector.x, moveVector.y);
             std::cout << "Move complete\n";
             nextTurn();
             _selectedSquare.reset();
@@ -361,10 +385,10 @@ void Game3D::handleMouseClick(const Chessboard3D chess3D, int mouseX, int mouseY
         std::cout << "Square (" << square->x << ", " << square->y << ") selected!\n"; 
         if(piece){
 
-            if(_chessBoard.canMove(_selectedSquare->x, _selectedSquare->y, moveVector.x, moveVector.y)){
+            if(_chessBoard->canMove(_selectedSquare->x, _selectedSquare->y, moveVector.x, moveVector.y)){
                 std::cout << "Piece can move!\n";
                 enPassantTurnCycle();
-                _chessBoard.move(_selectedSquare->x, _selectedSquare->y, moveVector.x, moveVector.y);
+                _chessBoard->move(_selectedSquare->x, _selectedSquare->y, moveVector.x, moveVector.y);
                 nextTurn();
                 _selectedSquare.reset();
                 _possibleMoves.clear();

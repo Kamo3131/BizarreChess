@@ -69,10 +69,12 @@ class MovementHistory {
      * Can't be used if m_currentIndex == 0.
      */
     void undo();
+    bool canUndo() const;
     /**
      * @brief goes back to the next index, if current index isn't the current size of m_history.
      */
     void redo();
+    bool canRedo() const;
     private:
     FastVector<ChessboardData, 500> m_history;
     std::size_t m_currentIndex = 0;

@@ -127,17 +127,22 @@ std::size_t MovementHistory::getIndex() const {
  * Can't be used if m_currentIndex == 0.
  */
 void MovementHistory::undo() {
-    if(m_currentIndex <= 0) {
-        return;
+    if(canUndo()){
+        --m_currentIndex;
     }
-    --m_currentIndex;
+
+}
+bool MovementHistory::canUndo() const{
+    return m_currentIndex > 0;
 }
 /**
  * @brief goes back to the next index, if current index isn't the current size of m_history.
  */
 void MovementHistory::redo() {
-    if (m_history.empty()) return;
-    if (m_currentIndex < m_history.size() - 1) {
+    if (canRedo()) {
         ++m_currentIndex;
     }
+}
+bool MovementHistory::canRedo() const{
+    return !m_history.empty() && m_currentIndex < m_history.size() - 1;
 }

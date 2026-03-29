@@ -2,6 +2,7 @@
 #include "GameInterface.hpp"
 #include "Chessboard3D.hpp"
 #include "RaySelection.hpp"
+#include "MovementHistory.hpp"
 #include <optional>
 
 class Game3D : public GameInterface {
@@ -65,6 +66,8 @@ class Game3D : public GameInterface {
      * @return Current turn number.
      */
     int getTurn() const;
+    void undo();
+    void redo();
     /**
      * @brief Gets the chessboard.
      * @return Reference to the chessboard.
@@ -101,6 +104,6 @@ class Game3D : public GameInterface {
     std::vector<sf::Vector2i> _possibleMoves;
     
     RaySelection _raySelection;
-    ChessBoard _chessBoard;
-
+    std::unique_ptr<ChessBoard> _chessBoard;
+    MovementHistory _movementHistory;
 };
